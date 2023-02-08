@@ -1,0 +1,44 @@
+{{#extends "base"}}
+
+{{#block "content"}}
+<h1>All Recipes</h1>
+<a href="/add-recipe" class="btn btn-primary">Add New</a>
+
+<hr>
+<form method="GET">
+    <div class="mt-2">
+      <label>Title Search:</label>
+      <input type="text" name="title" class="form-control" value="{{title}}"/>
+    </div>
+    <div class="mt-2">
+        <label>Ingredients Search:</label>
+        <input type="text" name="ingredients" class="form-control" value="{{ingredients}}"/>
+    </div>
+    <input type="submit" value="Search" class="mt-2 btn btn-primary btn-sm"/>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Title</th>
+            <th>Ingredients</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each results}}
+        <tr>
+            <td>{{this.title}}</td>
+            <td>{{this.ingredients}}</td>
+            <td>
+                <a href="/edit-recipe/{{this._id}}" class="btn btn-success btn-sm">Edit</a>
+                <a href="/delete-recipe/{{this._id}}" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+
+</table>
+{{/block}}
+
+{{/extends}}

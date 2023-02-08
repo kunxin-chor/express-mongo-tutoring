@@ -1,0 +1,15 @@
+{{#extends "base"}}
+
+{{#block "content"}}
+<div class="alert alert-danger">
+<form method="POST">
+    Are you sure you want to delete {{recipe.title}}?
+    <div>
+        <input type="submit" value="Confirm" class="btn btn-danger"/>
+        <a href="/search-recipes" class="btn btn-primary">Cancel</a>
+    </div>
+</form>
+</div>
+{{/block}}
+
+{{/extends}}
