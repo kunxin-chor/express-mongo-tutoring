@@ -10,8 +10,17 @@ require('dotenv').config();
 
 const app = express();
 app.set('view engine', 'hbs');
+
+require('handlebars-helpers')(
+    {
+        "handlebars": hbs.handlebars
+    }
+)
+
+
 wax.on(hbs.handlebars);
 wax.setLayoutPath("./views/layouts");
+
 
 // enable form proccessing
 app.use(express.urlencoded({
@@ -24,6 +33,14 @@ const mongoURI=process.env.MONGO_URI;
 const DB = "tutoring_recipes";
 const COLLECTION="recipes";
 
+// write our own custom helpers
+hbs.handlebars.registerHelper("ifEquals", function(arg1, arg2, options){
+ if (arg1 == arg2) {
+    return options.fn(this);
+ } else {
+    return options.inverse(this);
+ }
+})
 
 
 async function main() {
@@ -79,16 +96,63 @@ async function main() {
     })
 
     app.get('/add-recipe', function(req,res){
-        res.render('add-recipe');
+        res.render('add-recipe',{
+            "oldValues":{
+                "cuisine":"chinese"
+            }
+        });
     })
 
+    // the validation rules are:
+    // - title: must be not empty (at least 1 character)
+    // - ingredients: at least three ingredient
     app.post('/add-recipe', async function(req,res){
-        const results = await db.collection(COLLECTION).insertOne({
-            "title": req.body.title,
-            "ingredients": req.body.ingredients.split(",")
-        })
+
         
-        res.redirect("/search-recipes");
+
+        const errors = [];  // the array is store all the possible error messages
+
+        if (!req.body.cuisine) {
+            errors.push("Please select a cuisine type");            
+        }
+
+        if (!req.body.title) {
+           errors.push("Please provide the title of the recipe");
+        }
+
+        const ingredients = req.body.ingredients.split(",");
+
+        if (ingredients.length < 3) {            
+            errors.push("Please provide at least three ingredients");            
+        }
+
+        // if no tags selected -> empty array
+        // if one tag selected -> an array with one string
+        // if two or more tags selected -> an array with the strings
+        let selectedTags = req.body.tags ? (Array.isArray(req.body.tags) ? req.body.tags : [req.body.tags])  : [];
+
+        // if no errors detected
+        if (errors.length == 0) {
+            const results = await db.collection(COLLECTION).insertOne({
+                "title": req.body.title,
+                "ingredients": req.body.ingredients.split(","),
+                "cuisine": req.body.cuisine,
+                
+            })
+            
+            res.redirect("/search-recipes");
+        } else {
+
+           
+            // if there is error
+            res.status(400);
+            res.render("add-recipe", {
+                "errors": errors,
+                "oldValues": {...req.body, "selectedTags": selectedTags}
+            })
+        }
+
+     
     })
 
     app.get('/edit-recipe/:recipe_id',async function(req,res){

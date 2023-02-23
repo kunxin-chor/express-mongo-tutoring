@@ -2,15 +2,86 @@
 
 {{#block "content"}}
 <h1>Add a new recipe</h1>
+
+{{#if errors}}
+<div class="alert alert-danger">
+    <ul>
+        {{#each errors}}
+        <li>{{this}}</li>
+        {{/each}}
+    </ul>
+</div>
+{{/if}}
+
 <form method="POST">
     <div class="mt-3">
         <label>Title</label>
-        <input type="text" name="title" class="form-control"/>
+        <input type="text" name="title" class="form-control" value="{{oldValues.title}}"/>
     </div>
     <div class="mt-3">
         <label>Ingredients</label>
-        <input type="text" name="ingredients" class="form-control"/>
+        <input type="text" name="ingredients" class="form-control" value="{{oldValues.ingredients}}"/>
     </div>
+    <div class="mt-3">
+        <label>Cuisine</label>
+
+        <input type="radio" name="cuisine" value="chinese"
+             {{#ifEquals oldValues.cuisine "chinese"}}checked{{/ifEquals}}
+        />
+        <label>Chinese</label>
+
+        <input type="radio" name="cuisine" value="malay" 
+            {{#ifEquals oldValues.cuisine "malay"}}checked{{/ifEquals}}
+        />
+        <label>Malay</label>
+
+        <input type="radio" name="cuisine" value="indian"
+         {{#ifEquals oldValues.cuisine "indian"}}checked{{/ifEquals}}
+        />
+        <label>Indian</label>
+
+        <input type="radio" name="cuisine" value="others"
+            {{#ifEquals oldValues.cuisine "others"}}checked{{/ifEquals}}
+        />
+        <label>Others</label>
+
+    </div>
+
+     <!-- tags -->
+     <div class="mt-3">
+        <label>Tags</label>
+        <input type="checkbox" name="tags" value="keto" 
+            {{#inArray oldValues.selectedTags "keto"}}checked{{/inArray}}
+        />
+        <label>Keto</label>
+
+        <input type="checkbox" name="tags" value="vegan"
+            {{#inArray oldValues.selectedTags "vegan"}}checked{{/inArray}}
+        />
+        <label>Vegan</label>
+
+        <input type="checkbox" name="tags" value="organic"
+            {{#inArray oldValues.selectedTags "organic"}}checked{{/inArray}}
+        />
+        <label>Organic</label>
+
+        <input type="checkbox" name="tags" value="pescatarian" 
+            {{#inArray oldValues.selectedTags "pescatarian"}}checked{{/inArray}}
+        />
+        <label>Pescatarian</label>
+
+        <input type="checkbox" name="tags" value="low-carbs"
+            {{#inArray oldValues.selectedTags "low-carbs"}}checked{{/inArray}}
+        />
+        <label>Low Carbs</label>
+
+        <input type="checkbox" name="tags" value="allergen-free"
+            {{#inArray oldValues.selectedTags "allergen-free"}}checked{{/inArray}}
+        />
+        <label>Allergen Free</label>
+
+     </div>
+
     <input type="submit" class="btn btn-primary mt-3"  />
 </form>
 {{/block}}
