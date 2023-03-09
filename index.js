@@ -1,5 +1,4 @@
 const express = require('express');
-const req = require('express/lib/request');
 const hbs = require('hbs');
 const { ObjectId } = require('mongodb');
 const wax = require('wax-on');
@@ -192,6 +191,88 @@ async function main() {
         });
         res.redirect('/search-recipes');
     })
+
+    // RECIPES MANAGEMENT ROUTES BEGIN HERE
+
+    // this is to display all the reviews of a recipe
+    app.get("/recipes/:recipe_id/reviews", async function(req,res){
+        const recipe = await findRecipeByID(req.params.recipe_id);
+        res.render('reviews',{
+            'recipe_id': req.params.recipe_id,
+            'recipe': recipe
+        })
+    })
+
+    app.get("/recipes/:recipe_id/reviews/add", function(req,res){
+        res.render("add-review")
+    })
+
+    app.post("/recipes/:recipe_id/reviews/add", async function(req,res){
+        const result = await db.collection(COLLECTION)
+                            .updateOne({
+                                "_id": ObjectId(req.params.recipe_id)
+                            },{
+                                "$push":{
+                                    "reviews":{
+                                        "_id": ObjectId(),
+                                        "email": req.body.email,
+                                        "review": req.body.review
+                                    }
+                                }
+                            })
+        res.redirect(`/recipes/${req.params.recipe_id}/reviews`);
+    });
+
+    // display the form to edit one review
+    app.get('/recipes/:recipe_id/reviews/:review_id', async function(req,res){
+        const data = await db.collection(COLLECTION)
+                        .findOne({
+                            "_id": ObjectId(req.params.recipe_id),
+                            "reviews._id": ObjectId(req.params.review_id)
+                        }, {
+                            "projection": {
+                                // the $ refers to the index of the review
+                                // that matches the `reviews._id` criteria
+                                "reviews.$": 1
+                            }
+                        })
+        const reviewToEdit = data.reviews[0];
+        res.render('edit-review',{
+            'review': reviewToEdit
+        })  
+    })
+
+    app.post('/recipes/:recipe_id/reviews/:review_id', async function(req,res){
+        await db.collection(COLLECTION)
+            .updateOne({
+                "_id": ObjectId(req.params.recipe_id),
+                "reviews._id": ObjectId(req.params.review_id)
+            },{
+                "$set":{
+                    "reviews.$" :{
+                        "email": req.body.email,
+                        "review": req.body.review
+                    }
+                }
+            });
+        res.redirect(`/recipes/${req.params.recipe_id}/reviews`);
+    });
+
+    app.get('/recipes/:recipe_id/reviews/:review_id/delete', async function(req,res){
+        await db.collection(COLLECTION)
+                .updateOne({
+                    "_id": ObjectId(req.params.recipe_id),
+                    "reviews._id": ObjectId(req.params.review_id)
+                },{
+                    "$pull":{
+                        "reviews":{
+                            "_id": ObjectId(req.params.review_id)
+                        }
+                    }
+                })
+
+        res.redirect(`/recipes/${req.params.recipe_id}/reviews`);
+    });
 }
 
 main();

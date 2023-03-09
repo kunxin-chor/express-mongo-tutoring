@@ -1,0 +1,21 @@
+{{#extends "base"}}
+
+{{#block "content"}}
+<h1>Reviews for Recipes</h1>
+
+<a href="/recipes/{{recipe_id}}/reviews/add">New Review</a>
+
+{{#each recipe.reviews}}
+<div class="card" style="width: 22rem;">
+  <div class="card-body">
+    <h4>By: {{email}}</h4>
+    <div class="card-text">{{this.review}}</div>
+    <a href="/recipes/{{../recipe_id}}/reviews/{{this._id}}" class="btn btn-primary btn-sm">Edit</a>
+    <a href="/recipes/{{../recipe_id}}/reviews/{{this._id}}/delete" class="btn btn-danger btn-sm">Delete</a>
+  </div>
+</div>
+{{/each}}
+
+{{/block}}
+
+{{/extends}}

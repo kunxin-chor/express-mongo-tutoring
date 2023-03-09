@@ -1,0 +1,18 @@
+{{#extends "base"}}
+
+{{#block "content"}}
+<h1>Edit Review</h1>
+    <form method="POST">
+        <div>
+            <label>Email</label>
+            <input type="text" class="form-control" name="email" value="{{review.email}}"/>
+        </div>
+        <div>
+            <label>Review</label>
+            <textarea class="form-control" name="review">{{review.review}}</textarea>
+        </div>
+        <input type="submit" class="btn btn-primary mt-3"/>
+    </form>
+{{/block}}
+
+{{/extends}}
