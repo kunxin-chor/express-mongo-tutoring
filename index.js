@@ -98,7 +98,8 @@ async function main() {
     app.get('/add-recipe', function(req,res){
         res.render('add-recipe',{
             "oldValues":{
-                "cuisine":"chinese"
+                "cuisine":"chinese",
+                "selectedTags":[]
             }
         });
     })
@@ -137,6 +138,7 @@ async function main() {
                 "title": req.body.title,
                 "ingredients": req.body.ingredients.split(","),
                 "cuisine": req.body.cuisine,
+                "selectedTags": selectedTags
                 
             })
             
@@ -157,8 +159,11 @@ async function main() {
 
     app.get('/edit-recipe/:recipe_id',async function(req,res){
         const recipe = await findRecipeByID(req.params.recipe_id);
-        res.render('update-recipe',{
-            "recipe": recipe
+        const selectedTags = recipe.selectedTags || [];
+        const merged = {...recipe, "selectedTags": selectedTags};
+        console.log(merged);
+        res.render('recipe-form',{
+            "oldValues":  merged
         })
     });
 
@@ -191,6 +196,6 @@ async function main() {
 
 main();
 
-app.listen(3000, function(){
+app.listen(3001, function(){
     console.log("Server has started");
 })
