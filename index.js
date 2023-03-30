@@ -3,11 +3,17 @@ const hbs = require('hbs');
 const { ObjectId } = require('mongodb');
 const wax = require('wax-on');
 const mongo = require('mongodb').MongoClient;
+const bcrypt = require('bcrypt');
+const flash = require('connect-flash');
 
 // for sessions
 const session = require('express-session');
 // create a file store to save the sessions
 const FileStore = require('session-file-store')(session);
+
+
+
+
 
 // read in the .env file
 require('dotenv').config();
@@ -25,6 +31,10 @@ app.use(session({
         "maxAge": 864000000
     }
 }))
+
+// use flash message
+// the connect-flash dependency relies on session
+app.use(flash());
 
 require('handlebars-helpers')(
     {
@@ -56,6 +66,15 @@ function checkIfAuthenticated(req, res, next) {
     }
 }
 
+// a middleware is a function that is executed before the routes
+app.use(function(req,res, next){
+    // res.locals is a dictionary (or object) that stores all the variables available in hbs files
+    // extract the success messages from the session and the same time delete it
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');    
+    next();
+})
+
 // the process object is always available
 // to all NodeJS application
 const mongoURI = process.env.MONGO_URI;
@@ -71,6 +90,8 @@ hbs.handlebars.registerHelper("ifEquals", function (arg1, arg2, options) {
         return options.inverse(this);
     }
 })
+
+
 
 
 async function main() {
@@ -307,12 +328,22 @@ async function main() {
     })
 
     app.post('/users/create', async function (req, res) {
+        // generate a salt value (a salt value is added to a hash so that every hash is unique)
+        // need to declare how many characters the hash value
+        const salt = await bcrypt.genSalt(10);
         await db.collection(USERS)
             .insertOne({
                 email: req.body.email,
-                password: req.body.password
+                password: await bcrypt.hash(req.body.password, salt)
             })
-        res.send("Your account has been created!");
+        // set a flash message
+        // two arguments to the flash function
+        // first argument - the key of the flash message
+        // second argument - the value of the flash message
+        req.flash('success', 'Your account has been created!');
+        // for a flash message to show, we have to redirect or wait for the user to send a request via the browser
+        // i.e the flash message is only available on the next response
+        res.redirect("/login");
     })
 
     app.get("/login", function (req, res) {
@@ -325,15 +356,21 @@ async function main() {
             .findOne({
                 "email": req.body.email
             });
-        if (user.password === req.body.password) {
+        
+        if (!user) {
+            req.flash("error", "Authentication failed");
+            res.redirect("/login");            
+        }
+        else if (await bcrypt.compare(req.body.password, user.password)) {
             // remember the user's id and email
             req.session.userId = user._id;
             req.session.email = user.email;
-            res.send("Login successful!");
+            req.flash("success", "Login successful");
+            res.redirect('/profile')
         } else {
-            res.send("Login failed!");
+            req.flash("error", "Authentication failed");
+            res.redirect("/login");
         }
-
     });
 
     app.get("/logout", function (req, res) {
